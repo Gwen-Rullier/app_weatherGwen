@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">App_Weather of Gwen</string>
+
+    <string name="city_name">New York</string>
+    <string name="city_desc">Sunny</string>
+    <string name="city_temp">75°F</string>
+    <string name="button_name">Favorites</string>
+    <string name="strings">city_name</string>
+
+</resources>
