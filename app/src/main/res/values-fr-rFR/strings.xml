@@ -7,5 +7,11 @@
     <string name="city_temp">24°C</string>
     <string name="button_name">Favoris</string>
     <string name="no_connexion">Vous n\'êtes pas connecté</string>
+    <string name="title_activity_favorite">Vos favoris</string>
+    <string name="action_settings">Dossiers</string>
+    <string name="add_city">Nom de la ville</string>
+    <string name="strings">nom_ville</string>
+    <string name="api_error">Une erreur s\'est produite</string>
+    <string name="place_not_found">Ville introuvable</string>
 
 </resources>
