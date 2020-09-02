@@ -9,34 +9,31 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.rulliergwen.android.app_weather.R;
-import com.rulliergwen.android.app_weather.models.City;
+import com.rulliergwen.android.app_weather.models.City1;
 
 import java.util.ArrayList;
 
-public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHolder> {
+public class FavoriteAdapterTP5 extends RecyclerView.Adapter<FavoriteAdapterTP5.ViewHolder>{
 
+    private ArrayList<City1> mArrayListCities;
     private Context mContext;
-    private ArrayList<City> mCities;
 
-
-    public FavoriteAdapter(Context mContext, ArrayList<City> mCities) {
-        this.mContext = mContext;
-        this.mCities = mCities;
+    public FavoriteAdapterTP5(Context context, ArrayList<City1> cities) {
+        mContext = context;
+        mArrayListCities = cities;
     }
 
-    // Classe holder qui contient la vue d’un item
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         public TextView mTextViewCity;
-        public TextView mTextViewDetails;
-        public TextView mTextViewTemperature;
         public ImageView mImageViewWeather;
+        public TextView mTextViewTemperature;
+        public TextView mTextViewDescription;
 
-        public int mPosition;
+        public int position;
 
         public ViewHolder(View view) {
             super(view);
@@ -47,52 +44,53 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHo
             mTextViewCity = (TextView) view.findViewById(R.id.textView_item_city);
             mImageViewWeather = (ImageView) view.findViewById(R.id.imageView_item_weather);
             mTextViewTemperature = (TextView) view.findViewById(R.id.textView_item_temperature);
-            mTextViewDetails = (TextView) view.findViewById(R.id.textView_item_details);
+            mTextViewDescription = (TextView) view.findViewById(R.id.textView_item_details);
         }
     }
 
-    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public FavoriteAdapterTP5.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // create a new view
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_favorite_city, parent, false);
 
-        View v = LayoutInflater.from(mContext).inflate(R.layout.item_favorite_city, parent, false);
-        ViewHolder viewHolder = new ViewHolder(v);
-        return viewHolder;
+        ViewHolder vh = new ViewHolder(v);
+        return vh;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
 
-        City city = mCities.get(position);
+        City1 city = mArrayListCities.get(position);
 
         holder.mTextViewCity.setText(city.mName);
-        holder.mImageViewWeather.setImageResource(city.mWeatherResIconWhite);
+        holder.mImageViewWeather.setImageResource(city.mWeatherResIconGrey);
         holder.mTextViewTemperature.setText(city.mTemperature);
-        holder.mTextViewDetails.setText(city.mDescription);
+        holder.mTextViewDescription.setText(city.mDescription);
 
-        holder.mPosition = position;
+        holder.position = position;
     }
 
     @Override
     public int getItemCount() {
-        return mCities.size();
+        return mArrayListCities.size();
     }
+
 
     private View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View v) {
 
             ViewHolder holder = (ViewHolder) v.getTag();
-            final int position = holder.mPosition;
+            final int position = holder.position;
 
             final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
             builder.setMessage("Supprimer " + holder.mTextViewCity.getText().toString() + " ?");
             builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    mCities.remove(position);
+                    mArrayListCities.remove(position);
                     notifyDataSetChanged();
                     notifyItemRemoved(position);
-                    notifyItemRangeChanged(position, mCities.size());
+                    notifyItemRangeChanged(position, mArrayListCities.size());
 
                 }
             });
@@ -106,8 +104,4 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHo
             return false;
         }
     };
-
-
-
-
 }

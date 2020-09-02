@@ -10,6 +10,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.rulliergwen.android.app_weather.R;
 import com.rulliergwen.android.app_weather.adapters.FavoriteAdapter;
+//import com.rulliergwen.android.app_weather.adapters.FavoriteAdapterTP5;
 import com.rulliergwen.android.app_weather.models.City;
 import com.rulliergwen.android.app_weather.utiles.Utils;
 
@@ -26,8 +27,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,6 +68,8 @@ public class FavoriteActivity extends AppCompatActivity {
         mHandler = new Handler();
         mOkHttpClient = new OkHttpClient();
 
+        mCities = Utils.initFavoriteCities(mContext);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,10 +79,10 @@ public class FavoriteActivity extends AppCompatActivity {
                 View v = LayoutInflater.from(mContext).inflate(R.layout.dialog_add_favorite, null);
                 final EditText editTextCity = (EditText) v.findViewById(R.id.editText_dialog_city);
                 builder.setView(v);
-                /**
+
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                 **/
+
 
                 builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -98,30 +103,26 @@ public class FavoriteActivity extends AppCompatActivity {
         Log.d("TAG", "-----------> FavoriteActivity: onCreate()");
 
         /** envoi dans le textView TP2
-        TextView mTextViewMessage = (TextView) findViewById(R.id.textView_message);
+         TextView mTextViewMessage = (TextView) findViewById(R.id.textView_message);
 
-        String message = "";
+         String message = "";
 
-        Bundle extras = getIntent().getExtras();
-        if (extras != null)
-            message = extras.getString(Utils.mMessage);
+         Bundle extras = getIntent().getExtras();
+         if (extras != null)
+         message = extras.getString(Utils.mMessage);
 
-        mTextViewMessage.setText("Message : " + message);
-        **/
+         mTextViewMessage.setText("Message : " + message);
+         **/
 
-        // TP3 création de l'arrayList mCities
-        mCities = new ArrayList<>();
-
-        /**
-        City city1 = new City("Montréal", "Légères pluies", "22°C", R.drawable.weather_rainy_grey);
-        City city2 = new City("New York", "Ensoleillé", "22°C", R.drawable.weather_sunny_grey);
-        City city3 = new City("Paris", "Nuageux", "24°C", R.drawable.weather_foggy_grey);
-        City city4 = new City("Toulouse", "Pluies modérées", "20°C", R.drawable.weather_rainy_grey);
-
-        mCities.add(city1);
-        mCities.add(city2);
-        mCities.add(city3);
-        mCities.add(city4);
+        /**TP3 création de l'arrayList mCities
+         City city1 = new City("Montréal", "Légères pluies", "22°C", R.drawable.weather_rainy_grey);
+         City city2 = new City("New York", "Ensoleillé", "22°C", R.drawable.weather_sunny_grey);
+         City city3 = new City("Paris", "Nuageux", "24°C", R.drawable.weather_foggy_grey);
+         City city4 = new City("Toulouse", "Pluies modérées", "20°C", R.drawable.weather_rainy_grey);
+         mCities.add(city1);
+         mCities.add(city2);
+         mCities.add(city3);
+         mCities.add(city4);
          **/
 
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
@@ -130,6 +131,9 @@ public class FavoriteActivity extends AppCompatActivity {
 
         mAdapter = new FavoriteAdapter(mContext, mCities);
         mRecyclerView.setAdapter(mAdapter);
+
+
+        // TP3 suppression d'un élément de la liste par appui long
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -139,7 +143,39 @@ public class FavoriteActivity extends AppCompatActivity {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
 
-                mPositionCityRemoved = ((FavoriteAdapter.ViewHolder) viewHolder).position;
+                mPositionCityRemoved = ((FavoriteAdapter.ViewHolder) viewHolder).mPosition;
+                mCityRemoved = mCities.remove(mPositionCityRemoved);
+                mAdapter.notifyDataSetChanged();
+                Utils.saveFavouriteCities(mContext, mCities);
+
+                Snackbar.make(findViewById(R.id.myCoordinatorLayout), mCityRemoved.mName + " est supprimé", Snackbar.LENGTH_LONG)
+                        .setAction("Annuler", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mCities.add(mPositionCityRemoved, mCityRemoved);
+                                mAdapter.notifyDataSetChanged();
+                                Utils.saveFavouriteCities(mContext, mCities);
+                            }
+                        })
+                        .show();
+
+            }
+        });
+
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
+        // TP5 suppression d'un élément de la liste par swipe droite ou gauche
+        ItemTouchHelper itemTouchHelperSwipe = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                mPositionCityRemoved = ((FavoriteAdapter.ViewHolder) viewHolder).mPosition;
                 mCityRemoved = mCities.remove(mPositionCityRemoved);
 
                 mAdapter.notifyDataSetChanged();
@@ -153,30 +189,27 @@ public class FavoriteActivity extends AppCompatActivity {
                             }
                         })
                         .show();
-
             }
         });
-
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
     }
 
     public void updateWeatherDataCityName(final String cityName) {
 
         String[] params = {cityName};
-        String s = String.format(Utils.mAPI, params);
+        String s = String.format(Utils.mAPI_CITY_NAME, params);
         Request request = new Request.Builder().url(s).build();
         mOkHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
 
             }
-
             @Override
             public void onResponse(Call call, Response response) throws IOException {
 
                 final String stringJson = response.body().string();
 
-                if (response.isSuccessful() && UtilAPI.isSuccessful(stringJson)) {
+                if (response.isSuccessful() && Utils.isSuccessful(stringJson)) {
                     mHandler.post(new Runnable() {
                         public void run() {
                             renderFavoriteCityWeather(stringJson);
@@ -198,6 +231,7 @@ public class FavoriteActivity extends AppCompatActivity {
         try {
             City city = new City(stringJson);
             mCities.add(city);
+            Utils.saveFavouriteCities(mContext,mCities);
             mAdapter.notifyDataSetChanged();
         } catch (JSONException e) {
             Toast.makeText(mContext, getString(R.string.place_not_found), Toast.LENGTH_LONG).show();
